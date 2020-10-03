@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Repositories</string>
+    <string name="share">Share</string>
+    <string name="error_get_repositories">Error on get repositories, please refresh and try again.</string>
+    <string name="error_details_repositories">Error on set details  of repositories!!</string>
+    <string name="detail_repository">Details</string>
+    <string name="list_public_rep">Public repositories</string>
+    <string name="open">Open</string>
+    <string name="desc">Description</string>
+</resources>

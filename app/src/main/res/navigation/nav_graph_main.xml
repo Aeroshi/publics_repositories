@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    tools:ignore="UnusedNavigation"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/repositoryDetailsFragment"
+        android:name="com.aeroshi.repositories.views.home.RepositoryDetailsFragment"
+        android:label="@string/detail_repository" >
+        <action
+            android:id="@+id/navigate_repositoryDetailsFragment_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.aeroshi.repositories.views.home.HomeFragment"
+        android:label="@string/list_public_rep" >
+        <action
+            android:id="@+id/navigate_home_to_repositoryDetailsFragment"
+            app:destination="@id/repositoryDetailsFragment"
+            app:launchSingleTop="false"
+            app:popUpToInclusive="false" />
+    </fragment>
+</navigation>
