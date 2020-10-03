@@ -12,7 +12,9 @@
         android:label="@string/detail_repository" >
         <action
             android:id="@+id/navigate_repositoryDetailsFragment_to_home"
-            app:destination="@id/homeFragment" />
+            app:destination="@id/homeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit" />
     </fragment>
 
     <fragment
@@ -22,6 +24,8 @@
         <action
             android:id="@+id/navigate_home_to_repositoryDetailsFragment"
             app:destination="@id/repositoryDetailsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
             app:launchSingleTop="false"
             app:popUpToInclusive="false" />
     </fragment>
