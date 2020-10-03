@@ -1,12 +1,16 @@
 package com.aeroshi.repositories.viewmodels
 
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.aeroshi.repositories.data.AppDatabase
+import com.aeroshi.repositories.data.PublicRepsRepository
 import com.aeroshi.repositories.data.entitys.Rep
 import com.aeroshi.repositories.extensions.logError
 import com.aeroshi.repositories.model.repository.GitRepository
 import com.aeroshi.repositories.util.BaseSchedulerProvider
+import com.aeroshi.repositories.util.Executors.Companion.ioThread
 import com.aeroshi.repositories.util.GitUtil.Companion.repositoriesJsonParser
 import com.aeroshi.repositories.util.SchedulerProvider
 import com.aeroshi.repositories.util.enuns.ErrorType
@@ -35,7 +39,7 @@ class HomeViewModel(
     fun clearDisposables() = mCompositeDisposable.clear()
 
 
-    fun doPublicRepositories() {
+    fun doPublicRepositories(context: Context) {
         val since = getSince()
         mLoading.postValue(true)
         mCompositeDisposable.add(
@@ -46,7 +50,7 @@ class HomeViewModel(
                 .subscribeBy(
                     onSuccess = { jsonResult ->
                         try {
-                            setResult(repositoriesJsonParser(jsonResult))
+                            setResult(repositoriesJsonParser(jsonResult), context)
                         } catch (exception: Exception) {
                             mError.value = ErrorType.PARSER
                             mLoading.value = false
@@ -62,11 +66,22 @@ class HomeViewModel(
         )
     }
 
-    private fun setResult(repositories: ArrayList<Rep>) {
+
+    private fun setResult(repositories: ArrayList<Rep>, context: Context) {
+        saverRepOnDb(repositories, context)
         mRepositories.value?.let { repositories.addAll(it) }
         mRepositories.value = repositories
         mError.value = ErrorType.NONE
         mLoading.value = false
+    }
+
+    private fun saverRepOnDb(reps: ArrayList<Rep>, context: Context) {
+        ioThread {
+            val configManagerRepository =
+                PublicRepsRepository.getInstance(AppDatabase.getInstance(context).publicReps())
+
+            configManagerRepository.insertPublicReps(reps)
+        }
     }
 
     private fun getSince(): Long {

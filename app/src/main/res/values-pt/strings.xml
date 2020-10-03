@@ -8,4 +8,5 @@
     <string name="list_public_rep">Repositórios públicos</string>
     <string name="open">Abrir</string>
     <string name="desc">Descrição</string>
+    <string name="error_no_connection">" Erro, sem conexão!"</string>
 </resources>

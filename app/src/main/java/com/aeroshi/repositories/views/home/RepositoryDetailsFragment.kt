@@ -4,12 +4,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.core.app.ShareCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -18,7 +16,7 @@ import com.aeroshi.repositories.databinding.FragmentRepositoryDetailsBinding
 import com.aeroshi.repositories.extensions.navigate
 import com.aeroshi.repositories.viewmodels.MainViewModel
 import com.aeroshi.repositories.views.MainActivity
-import com.onurkaganaldemir.ktoastlib.KToast
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 
 class RepositoryDetailsFragment : Fragment() {
@@ -73,13 +71,12 @@ class RepositoryDetailsFragment : Fragment() {
             mBinding.textViewUsername.text = mMainViewModel.mSelectedRepository.value!!.owner.login
             mBinding.textViewDesc.text = mMainViewModel.mSelectedRepository.value!!.description
         } catch (exception: Exception) {
+            Snackbar.make(
+                mBinding.principal,
+                R.string.error_details_repositories,
+                Snackbar.LENGTH_LONG
+            ).show()
             navigate(R.id.navigate_repositoryDetailsFragment_to_home)
-            KToast.errorToast(
-                mMainActivity,
-                getString(R.string.error_details_repositories),
-                Gravity.CENTER,
-                Toast.LENGTH_SHORT
-            )
             Log.e(TAG, "Error on set details of repository: ${exception.localizedMessage}")
             exception.stackTrace
         }
@@ -92,7 +89,7 @@ class RepositoryDetailsFragment : Fragment() {
         mBinding.buttonShare.setOnClickListener {
             ShareCompat.IntentBuilder.from(mMainActivity)
                 .setType("text/plain")
-                .setChooserTitle("Share Movie")
+                .setChooserTitle(mMainActivity.application.getString(R.string.share))
                 .setText(mMainViewModel.mSelectedRepository.value!!.htmlUrl)
                 .startChooser();
         }

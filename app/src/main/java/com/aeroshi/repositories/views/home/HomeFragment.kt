@@ -1,11 +1,9 @@
 package com.aeroshi.repositories.views.home
 
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -14,14 +12,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.aeroshi.repositories.R
+import com.aeroshi.repositories.data.AppDatabase
+import com.aeroshi.repositories.data.PublicRepsRepository
+import com.aeroshi.repositories.data.entitys.Rep
 import com.aeroshi.repositories.databinding.FragmentHomeBinding
+import com.aeroshi.repositories.extensions.logDebug
 import com.aeroshi.repositories.util.Executors.Companion.ioThread
+import com.aeroshi.repositories.util.InternetUtil.Companion.isOnline
 import com.aeroshi.repositories.util.enuns.ErrorType
 import com.aeroshi.repositories.viewmodels.HomeViewModel
 import com.aeroshi.repositories.viewmodels.MainViewModel
 import com.aeroshi.repositories.views.MainActivity
 import com.aeroshi.repositories.views.adapters.GitAdapter
-import com.onurkaganaldemir.ktoastlib.KToast
+import com.google.android.material.snackbar.Snackbar
 
 
 class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
@@ -62,11 +65,29 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onRefresh() {
         mBinding.swipeRefresh.isRefreshing = false
-        mViewModel.mRepositories.value?.clear()
-        mAdapter.repositories.clear()
-        ioThread {
-            mViewModel.doPublicRepositories()
+        if (isOnline(mMainActivity.applicationContext)) {
+            mViewModel.mRepositories.value?.clear()
+            mAdapter.repositories.clear()
+            ioThread {
+                mMainActivity.applicationContext.let { context ->
+
+                    val configManagerRepository = PublicRepsRepository.getInstance(
+                        AppDatabase.getInstance(context).publicReps()
+                    )
+                    configManagerRepository.deleteAll()
+
+                    mViewModel.doPublicRepositories(context)
+
+                }
+            }
+        } else {
+            Snackbar.make(
+                mBinding.principal,
+                R.string.error_no_connection,
+                Snackbar.LENGTH_SHORT
+            ).show()
         }
+
     }
 
     override fun onStop() {
@@ -106,7 +127,23 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         mBinding.viewModel = mViewModel
         setAdapter()
         ioThread {
-            mViewModel.doPublicRepositories()
+            mMainActivity.applicationContext.let { context ->
+
+                val configManagerRepository = PublicRepsRepository.getInstance(
+                    AppDatabase.getInstance(context).publicReps()
+                )
+                val repositories = configManagerRepository.getPublicReps() as ArrayList<Rep>
+                if (repositories.isNullOrEmpty()) {
+                    mViewModel.doPublicRepositories(context)
+                } else {
+                    logDebug(TAG,"reps on db")
+                    logDebug(TAG,"size: ${repositories.size}")
+                    logDebug(TAG,repositories.toString())
+                    mViewModel.mRepositories.postValue(repositories)
+                    mViewModel.mError.postValue(ErrorType.NONE)
+                    mViewModel.mLoading.postValue(false)
+                }
+            }
         }
         mBinding.recycleViewRepositories.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
@@ -114,7 +151,7 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                 super.onScrolled(recyclerView, dx, dy)
                 if (!recyclerView.canScrollVertically(1)) {
                     ioThread {
-                        mViewModel.doPublicRepositories()
+                        mViewModel.doPublicRepositories(mMainActivity.applicationContext)
                     }
                 }
             }
@@ -127,12 +164,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             if (it == ErrorType.NONE) {
                 mAdapter.update(mViewModel.mRepositories.value!!)
             } else {
-                KToast.errorToast(
-                    mMainActivity,
-                    getString(R.string.error_get_repositories),
-                    Gravity.CENTER,
-                    Toast.LENGTH_LONG
-                )
+                Snackbar.make(
+                    mBinding.principal,
+                    R.string.error_get_repositories,
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
     }
