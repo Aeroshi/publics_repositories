@@ -8,8 +8,9 @@ import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "repositories")
 data class Rep(
-//    @PrimaryKey(autoGenerate = true)
-//    val index: Long?,
+    @SerializedName("id")
+    @PrimaryKey
+    val id: Long,
     @SerializedName("archive_url")
     val archiveUrl: String,
     @SerializedName("assignees_url")
@@ -30,9 +31,6 @@ data class Rep(
     val contentsUrl: String,
     @SerializedName("contributors_url")
     val contributorsUrl: String,
-    @SerializedName("id")
-    @PrimaryKey
-    val id: Long,
     @SerializedName("deployments_url")
     val deploymentsUrl: String,
     @SerializedName("description")

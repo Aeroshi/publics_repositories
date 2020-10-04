@@ -4,13 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.NonNull
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.aeroshi.repositories.R
 import com.aeroshi.repositories.data.AppDatabase
@@ -18,7 +16,6 @@ import com.aeroshi.repositories.data.PublicRepsRepository
 import com.aeroshi.repositories.data.entitys.Rep
 import com.aeroshi.repositories.databinding.FragmentHomeBinding
 import com.aeroshi.repositories.extensions.logDebug
-import com.aeroshi.repositories.extensions.logWarning
 import com.aeroshi.repositories.extensions.navigate
 import com.aeroshi.repositories.util.Executors.Companion.ioThread
 import com.aeroshi.repositories.util.InternetUtil.Companion.isOnline
@@ -72,11 +69,17 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
         addViewModelObservers()
     }
 
+    override fun onResume() {
+        super.onResume()
+        mBinding.search.setQuery("", false)
+        mBinding.search.clearFocus()
+    }
+
     override fun onRefresh() {
-        mBinding.swipeRefresh.isRefreshing = false
         if (isOnline(mMainActivity.applicationContext)) {
             mViewModel.mRepositories.value?.clear()
             mAdapter.repositories.clear()
+            mBinding.buttonMore.isEnabled = false
             ioThread {
                 mMainActivity.applicationContext.let { context ->
 
@@ -90,6 +93,7 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
                 }
             }
         } else {
+            mBinding.swipeRefresh.isRefreshing = false
             Snackbar.make(
                 mBinding.principal,
                 R.string.error_no_connection,
@@ -125,9 +129,8 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
     }
 
     private fun addViewModelObservers() {
-        logWarning(TAG, "hasActiveObservers: ${mViewModel.mError.hasActiveObservers()}")
-        logWarning(TAG, "hasObservers: ${mViewModel.mError.hasObservers()}")
         mViewModel.mError.observe(viewLifecycleOwner, observeError())
+        mViewModel.mRepositories.observe(viewLifecycleOwner, observeRepositories())
     }
 
     private fun isBindingInitialized() = ::mBinding.isInitialized
@@ -136,7 +139,7 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
         mBinding = FragmentHomeBinding.inflate(inflater, container, false)
         mBinding.lifecycleOwner = this
         mBinding.swipeRefresh.setOnRefreshListener(this)
-        mBinding.viewModel = mViewModel
+        startLoading()
         setAdapter()
         ioThread {
             mMainActivity.applicationContext.let { context ->
@@ -146,14 +149,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
                 )
                 val repositories = configManagerRepository.getPublicReps() as ArrayList<Rep>
                 if (repositories.isNullOrEmpty()) {
+                    mBinding.swipeRefresh.isRefreshing = true
                     mViewModel.doPublicRepositories(context)
                 } else {
-                    logDebug(TAG, "reps on db")
-                    logDebug(TAG, "size: ${repositories.size}")
                     logDebug(TAG, repositories.toString())
                     mViewModel.mRepositories.postValue(repositories)
-                    mViewModel.mError.postValue(ErrorType.NONE)
-                    mViewModel.mLoading.postValue(false)
                 }
             }
         }
@@ -161,21 +161,13 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
     }
 
     private fun listeners() {
-        mBinding.recycleViewRepositories.addOnScrollListener(object :
-            RecyclerView.OnScrollListener() {
-            override fun onScrolled(@NonNull recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (!recyclerView.canScrollVertically(1)) {
-                    ioThread {
-                        if (mBinding.search.query.isNullOrEmpty() && mViewModel.mLoading.value == false) {
-                            mBinding.recycleViewRepositories.stopScroll()
-                            mViewModel.doPublicRepositories(mMainActivity.applicationContext)
-                        }
-                    }
-                }
-            }
-        })
 
+        mBinding.buttonMore.setOnClickListener {
+            startLoading()
+            ioThread {
+                mViewModel.doPublicRepositories(mMainActivity.applicationContext)
+            }
+        }
 
         mBinding.search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -184,6 +176,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 mAdapter.filter.filter(newText)
+                mBinding.buttonMore.visibility = if (newText.isNullOrEmpty())
+                    View.VISIBLE
+                else
+                    View.GONE
+
                 return false
             }
 
@@ -195,9 +192,8 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
 
     private fun observeError(): Observer<ErrorType> {
         return Observer {
-            if (it == ErrorType.NONE) {
-                mAdapter.update(mViewModel.mRepositories.value!!)
-            } else {
+            finishLoading()
+            if (it != ErrorType.NONE) {
                 Snackbar.make(
                     mBinding.principal,
                     R.string.error_get_repositories,
@@ -206,6 +202,27 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
             }
         }
     }
+
+    private fun observeRepositories(): Observer<ArrayList<Rep>> {
+        return Observer {
+            mViewModel.mError.value = ErrorType.NONE
+            if (it.isNotEmpty()) {
+                finishLoading()
+                mAdapter.update(it)
+            }
+        }
+    }
+
+    private fun finishLoading() {
+        mBinding.swipeRefresh.isRefreshing = false
+        mBinding.buttonMore.isEnabled = true
+    }
+
+    private fun startLoading() {
+        mBinding.swipeRefresh.isRefreshing = true
+        mBinding.buttonMore.isEnabled = false
+    }
+
 
     private fun setAdapter() {
         mAdapter = GitAdapter(mMainActivity.applicationContext, this)
