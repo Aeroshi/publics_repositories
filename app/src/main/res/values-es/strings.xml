@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Repositories</string>
     <string name="share">Compartir</string>
-    <string name="error_get_repositories">Error al obtener repositorios, actualice e intente nuevamente.</string>
+    <string name="error_get_repositories">Error al obtener repositorios, por favor intente nuevamente.</string>
     <string name="error_details_repositories">¡Error en los detalles del conjunto de repositorios!</string>
     <string name="detail_repository">Detalles</string>
     <string name="list_public_rep">Repositorios públicos</string>

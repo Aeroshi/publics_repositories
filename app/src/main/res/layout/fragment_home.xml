@@ -46,18 +46,33 @@
                         android:layout_height="50dp"
                         android:visibility="visible" />
                 </LinearLayout>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycleView_Repositories"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scrollbars="vertical"
-                    android:visibility="@{viewModel.mLoading ? View.GONE : View.VISIBLE}"
                     app:layout_constraintBottom_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:orientation="vertical">
 
+                    <androidx.appcompat.widget.SearchView
+                        android:id="@+id/search"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorGrey"
+                        android:textCursorDrawable="@null"
+                        app:iconifiedByDefault="false"
+                        app:queryBackground="@null" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycleView_Repositories"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:fastScrollEnabled="false"
+                        android:scrollbars="vertical"
+                        android:visibility="@{viewModel.mLoading ? View.GONE : View.VISIBLE}" />
+
+                </LinearLayout>
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>

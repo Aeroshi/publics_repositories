@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.aeroshi.repositories.data.AppDatabase
 import com.aeroshi.repositories.data.PublicRepsRepository
 import com.aeroshi.repositories.data.entitys.Rep
+import com.aeroshi.repositories.extensions.logDebug
 import com.aeroshi.repositories.extensions.logError
 import com.aeroshi.repositories.model.repository.GitRepository
 import com.aeroshi.repositories.util.BaseSchedulerProvider
@@ -16,6 +17,8 @@ import com.aeroshi.repositories.util.SchedulerProvider
 import com.aeroshi.repositories.util.enuns.ErrorType
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.subscribeBy
+import java.util.*
+import kotlin.collections.ArrayList
 
 class HomeViewModel(
     private val mRepository: GitRepository = GitRepository(),
@@ -41,6 +44,7 @@ class HomeViewModel(
 
     fun doPublicRepositories(context: Context) {
         val since = getSince()
+        logDebug(TAG, "since: $since")
         mLoading.postValue(true)
         mCompositeDisposable.add(
             mRepository
@@ -77,18 +81,24 @@ class HomeViewModel(
 
     private fun saverRepOnDb(reps: ArrayList<Rep>, context: Context) {
         ioThread {
-            val configManagerRepository =
-                PublicRepsRepository.getInstance(AppDatabase.getInstance(context).publicReps())
+            try {
+                val configManagerRepository =
+                    PublicRepsRepository.getInstance(AppDatabase.getInstance(context).publicReps())
 
-            configManagerRepository.insertPublicReps(reps)
+                configManagerRepository.insertPublicReps(reps)
+            } catch (exception: Exception) {
+                logError(TAG, "Error on save repositories on db", exception)
+            }
         }
     }
 
     private fun getSince(): Long {
         return if (mRepositories.value.isNullOrEmpty())
             0
-        else
-            mRepositories.value!!.size.plus(100).toLong()
+        else {
+            val reps = mRepositories.value!!.sortedByDescending { it.id }
+            reps[0].id
+        }
     }
 
 }

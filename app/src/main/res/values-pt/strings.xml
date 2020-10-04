@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Repositories</string>
-    <string name="error_get_repositories">Erro ao obter repositórios, atualize e tente novamente.</string>
+    <string name="error_get_repositories">Erro ao obter repositórios, por favor tente novamente.</string>
     <string name="share">Compartilhar</string>
     <string name="error_details_repositories">Erro ao definir os detalhes dos repositórios !!</string>
     <string name="detail_repository">Detalhes</string>

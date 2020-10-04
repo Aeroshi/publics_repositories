@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.NonNull
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +18,8 @@ import com.aeroshi.repositories.data.PublicRepsRepository
 import com.aeroshi.repositories.data.entitys.Rep
 import com.aeroshi.repositories.databinding.FragmentHomeBinding
 import com.aeroshi.repositories.extensions.logDebug
+import com.aeroshi.repositories.extensions.logWarning
+import com.aeroshi.repositories.extensions.navigate
 import com.aeroshi.repositories.util.Executors.Companion.ioThread
 import com.aeroshi.repositories.util.InternetUtil.Companion.isOnline
 import com.aeroshi.repositories.util.enuns.ErrorType
@@ -27,7 +30,8 @@ import com.aeroshi.repositories.views.adapters.GitAdapter
 import com.google.android.material.snackbar.Snackbar
 
 
-class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
+class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener,
+    GitAdapter.ItemClickListener {
 
     companion object {
         private const val TAG = "HomeFragment"
@@ -63,6 +67,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
         return mBinding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        addViewModelObservers()
+    }
+
     override fun onRefresh() {
         mBinding.swipeRefresh.isRefreshing = false
         if (isOnline(mMainActivity.applicationContext)) {
@@ -91,15 +100,17 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     override fun onStop() {
+        logDebug(TAG, "onStop")
         super.onStop()
         mViewModel.clearDisposables()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!mViewModel.mError.hasObservers())
-            addViewModelObservers()
+
+    override fun onItemClick(rep: Rep) {
+        mMainViewModel.mSelectedRepository.value = rep
+        this.navigate(R.id.navigate_home_to_repositoryDetailsFragment)
     }
+
 
     private fun isMainViewModelInitialized() = ::mMainViewModel.isInitialized
 
@@ -111,10 +122,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
     private fun initializeViewModel() {
         mViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-        addViewModelObservers()
     }
 
     private fun addViewModelObservers() {
+        logWarning(TAG, "hasActiveObservers: ${mViewModel.mError.hasActiveObservers()}")
+        logWarning(TAG, "hasObservers: ${mViewModel.mError.hasObservers()}")
         mViewModel.mError.observe(viewLifecycleOwner, observeError())
     }
 
@@ -136,26 +148,48 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
                 if (repositories.isNullOrEmpty()) {
                     mViewModel.doPublicRepositories(context)
                 } else {
-                    logDebug(TAG,"reps on db")
-                    logDebug(TAG,"size: ${repositories.size}")
-                    logDebug(TAG,repositories.toString())
+                    logDebug(TAG, "reps on db")
+                    logDebug(TAG, "size: ${repositories.size}")
+                    logDebug(TAG, repositories.toString())
                     mViewModel.mRepositories.postValue(repositories)
                     mViewModel.mError.postValue(ErrorType.NONE)
                     mViewModel.mLoading.postValue(false)
                 }
             }
         }
+        listeners()
+    }
+
+    private fun listeners() {
         mBinding.recycleViewRepositories.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
             override fun onScrolled(@NonNull recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (!recyclerView.canScrollVertically(1)) {
                     ioThread {
-                        mViewModel.doPublicRepositories(mMainActivity.applicationContext)
+                        if (mBinding.search.query.isNullOrEmpty() && mViewModel.mLoading.value == false) {
+                            mBinding.recycleViewRepositories.stopScroll()
+                            mViewModel.doPublicRepositories(mMainActivity.applicationContext)
+                        }
                     }
                 }
             }
         })
+
+
+        mBinding.search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                mAdapter.filter.filter(newText)
+                return false
+            }
+
+        })
+
+
     }
 
 
@@ -174,10 +208,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun setAdapter() {
-        mAdapter = GitAdapter(mMainActivity.applicationContext, mMainViewModel)
+        mAdapter = GitAdapter(mMainActivity.applicationContext, this)
         mBinding.recycleViewRepositories.layoutManager =
             LinearLayoutManager(mMainActivity.applicationContext)
         mBinding.recycleViewRepositories.adapter = mAdapter
     }
+
 
 }

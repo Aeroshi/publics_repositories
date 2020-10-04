@@ -8,7 +8,10 @@ class PublicRepsRepository private constructor(private val publicRepsDao: Public
 
     fun insertPublicReps(reps: ArrayList<Rep>) = publicRepsDao.insertData(reps)
 
-    fun deleteAll() = publicRepsDao.deleteAll()
+    fun deleteAll(){
+        publicRepsDao.deleteTable()
+        publicRepsDao.resetTable()
+    }
 
     companion object {
 

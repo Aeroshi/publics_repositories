@@ -17,7 +17,10 @@ interface PublicReps {
     fun insertData(configManager: List<Rep>)
 
     @Query("DELETE FROM repositories")
-    fun deleteAll()
+    fun deleteTable(): Int
+
+    @Query("UPDATE repositories SET id=0 WHERE NAME='repositories'")
+    fun resetTable(): Int
 }
 
 
