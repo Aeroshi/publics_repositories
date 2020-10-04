@@ -91,7 +91,7 @@ class RepositoryDetailsFragment : Fragment() {
                 .setType("text/plain")
                 .setChooserTitle(mMainActivity.application.getString(R.string.share))
                 .setText(mMainViewModel.mSelectedRepository.value!!.htmlUrl)
-                .startChooser();
+                .startChooser()
         }
 
         mBinding.buttonOpen.setOnClickListener {

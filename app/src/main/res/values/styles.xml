@@ -7,8 +7,4 @@
         <item name="colorControlNormal">@color/colorWhite</item>
     </style>
 
-    <style name="arrow_close" parent="Widget.AppCompat.Light.ActionButton.CloseMode">
-        <item name="android:tint">@color/colorWhite</item>
-    </style>
-
 </resources>

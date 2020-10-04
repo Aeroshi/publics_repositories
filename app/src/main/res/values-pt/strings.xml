@@ -9,4 +9,6 @@
     <string name="open">Abrir</string>
     <string name="desc">Descrição</string>
     <string name="error_no_connection">" Erro, sem conexão!"</string>
+    <string name="load_more_repositories">carregar mais repositórios</string>
+    <string name="repository_owner_avatar">Avatar do dono do repositório</string>
 </resources>

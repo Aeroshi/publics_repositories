@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.aeroshi.repositories.R
 import com.aeroshi.repositories.data.entitys.Rep
 
-class GitViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+class GitViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     private val textViewRepositoryName: TextView = view.findViewById(R.id.textView_repository_name)
     private val textViewUsername: TextView = view.findViewById(R.id.textView_username)
 

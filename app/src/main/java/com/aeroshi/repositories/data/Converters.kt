@@ -7,10 +7,10 @@ import com.google.gson.Gson
 class Converters {
 
     @TypeConverter
-    fun ownerToJson(value: Owner) = Gson().toJson(value)
+    fun ownerToJson(value: Owner): String = Gson().toJson(value)
 
     @TypeConverter
-    fun jsonToOwner(value: String) = Gson().fromJson(value, Owner::class.java)
+    fun jsonToOwner(value: String): Owner = Gson().fromJson(value, Owner::class.java)
 
 
 

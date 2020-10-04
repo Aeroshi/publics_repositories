@@ -8,4 +8,6 @@
     <string name="list_public_rep">Public repositories</string>
     <string name="open">Open</string>
     <string name="desc">Description</string>
+    <string name="load_more_repositories">load more repositories</string>
+    <string name="repository_owner_avatar">Repository owner avatar</string>
 </resources>

@@ -3,7 +3,6 @@ package com.aeroshi.repositories.extensions
 
 import android.util.Log
 import com.aeroshi.repositories.util.LogUtil
-import com.aeroshi.repositories.util.StringUtil
 
 private const val TAG = ">>>>> [Repositories]"
 private const val PIPE = "|"

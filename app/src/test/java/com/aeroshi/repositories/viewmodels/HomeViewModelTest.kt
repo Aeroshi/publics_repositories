@@ -1,7 +1,6 @@
 package com.aeroshi.repositories.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.aeroshi.repositories.model.repository.GitRepository
 import com.aeroshi.repositories.util.GitUtil
@@ -9,8 +8,6 @@ import com.aeroshi.repositories.util.StringUtil
 import com.aeroshi.repositories.util.TrampolineSchedulerProvider
 import com.aeroshi.repositories.util.enuns.ErrorType
 import io.reactivex.Single
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.plugins.RxJavaPlugins
 import org.junit.*
 import org.junit.rules.TestRule
 import org.junit.runner.RunWith
@@ -20,8 +17,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
-import java.io.IOException
-import java.net.SocketException
 
 
 @RunWith(JUnit4::class)

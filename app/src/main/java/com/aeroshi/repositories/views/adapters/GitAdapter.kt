@@ -2,16 +2,12 @@ package com.aeroshi.repositories.views.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.Filter
 import android.widget.Filterable
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.aeroshi.repositories.R
 import com.aeroshi.repositories.data.entitys.Rep
-import com.aeroshi.repositories.viewmodels.MainViewModel
 import com.aeroshi.repositories.views.adapters.viewHolders.GitViewHolder
 import java.util.*
 import kotlin.collections.ArrayList
