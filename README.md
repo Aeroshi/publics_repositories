@@ -1,11 +1,3 @@
-Para executar a aplicação:<br/>
--Abra o android studio.<br/>
--No canto superior esquerdo clique em file/open.<br/>
--Navegue onde foi descompactado o projeto.<br/>
--Selecione “publics_repositories”.<br/>
--Aguarde baixar as dependências.<br/>
--Execute em um emulador ou celular.<br/>
-<br/>
 
 Para atualizar a lista a lista deve-se fazer um gesto swipe na vertical.<br/>
 Para carregar mais repositórios, rode até o fim da lista e pressione a seta.<br/>
